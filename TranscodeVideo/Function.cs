@@ -1,64 +1,73 @@
-using System;
+using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
+using Amazon.ElasticTranscoder;
+using Amazon.ElasticTranscoder.Model;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.S3Events;
-using Amazon.S3;
+using Amazon.Lambda.Serialization.Json;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
-[assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
+[assembly: LambdaSerializer(typeof(JsonSerializer))]
 
 namespace TranscodeVideo
 {
     public class Function
     {
-        private readonly IAmazonS3 _s3Client;
+        private readonly IAmazonElasticTranscoder _elasticTranscoder;
 
         /// <summary>
-        /// Default constructor. This constructor is used by Lambda to construct the instance. When invoked in a Lambda environment
-        /// the AWS credentials will come from the IAM role associated with the function and the AWS region will be set to the
-        /// region the Lambda function is executed in.
+        ///     Default constructor. This constructor is used by Lambda to construct the instance. When invoked in a Lambda
+        ///     environment
+        ///     the AWS credentials will come from the IAM role associated with the function and the AWS region will be set to the
+        ///     region the Lambda function is executed in.
         /// </summary>
         public Function()
         {
-            _s3Client = new AmazonS3Client();
+            _elasticTranscoder = new AmazonElasticTranscoderClient();
         }
 
         /// <summary>
-        /// Constructs an instance with a preconfigured S3 client. This can be used for testing the outside of the Lambda environment.
+        ///     Constructs an instance with a preconfigured S3 client. This can be used for testing the outside of the Lambda
+        ///     environment.
         /// </summary>
-        /// <param name="s3Client"></param>
-        public Function(IAmazonS3 s3Client)
+        /// <param name="elasticTranscoder"></param>
+        public Function(IAmazonElasticTranscoder elasticTranscoder)
         {
-            this._s3Client = s3Client;
-        } 
-        
+            _elasticTranscoder = elasticTranscoder;
+        }
+
         /// <summary>
-        /// This method is called for every Lambda invocation. This method takes in an S3 event object and can be used 
-        /// to respond to S3 notifications.
+        ///     This method is called for every Lambda invocation. This method takes in an S3 event object and can be used
+        ///     to respond to S3 notifications.
         /// </summary>
         /// <param name="evnt"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public async Task<string> FunctionHandler(S3Event evnt, ILambdaContext context)
+        public async Task FunctionHandler(S3Event evnt, ILambdaContext context)
         {
-            var s3Event = evnt.Records?[0].S3;
-            if(s3Event == null)
-            {
-                return null;
-            }
+            var key = evnt.Records?[0].S3.Object.Key;
 
-            try
+            var sourceKey = WebUtility.UrlDecode(key);
+
+            var outputKey = sourceKey.Split('.')[0];
+
+            context.Logger.LogLine($"key: {key}, sourceKey: {sourceKey}, outputKey: {outputKey}");
+
+            var job = new CreateJobRequest
             {
-                var response = await this._s3Client.GetObjectMetadataAsync(s3Event.Bucket.Name, s3Event.Object.Key);
-                return response.Headers.ContentType;
-            }
-            catch(Exception e)
-            {
-                context.Logger.LogLine($"Error getting object {s3Event.Object.Key} from bucket {s3Event.Bucket.Name}. Make sure they exist and your bucket is in the same region as this function.");
-                context.Logger.LogLine(e.Message);
-                context.Logger.LogLine(e.StackTrace);
-                throw;
-            }
+                PipelineId = "1505766337361-sv0ahs",
+                OutputKeyPrefix = $"{outputKey}/",
+                Input = new JobInput {Key = sourceKey},
+                Outputs = new List<CreateJobOutput>(new[]
+                {
+                    new CreateJobOutput {Key = $"{outputKey}-1080p.mp4", PresetId = "1351620000001-000001"},
+                    new CreateJobOutput {Key = $"{outputKey}-720p.mp4", PresetId = "1351620000001-000010"},
+                    new CreateJobOutput {Key = $"{outputKey}-web-720p.mp4", PresetId = "1351620000001-100070"}
+                })
+            };
+
+            await _elasticTranscoder.CreateJobAsync(job);
         }
     }
 }
