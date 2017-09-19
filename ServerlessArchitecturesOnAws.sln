@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.26730.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TranscodeVideo", "TranscodeVideo\TranscodeVideo.csproj", "{33C13857-7A8D-454A-BFFC-B97522279AA9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TranscodeVideo.Tests", "TranscodeVideo.Tests\TranscodeVideo.Tests.csproj", "{6F093F89-50D0-41D5-A87A-77E7542D617E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Tests\Tests.csproj", "{6F093F89-50D0-41D5-A87A-77E7542D617E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

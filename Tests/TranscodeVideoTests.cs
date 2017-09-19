@@ -7,11 +7,12 @@ using Amazon.Lambda.Core;
 using Amazon.Lambda.S3Events;
 using Amazon.S3.Util;
 using Moq;
+using TranscodeVideo;
 using Xunit;
 
-namespace TranscodeVideo.Tests
+namespace Tests
 {
-    public class FunctionTest
+    public class TranscodeVideoTests
     {
         [Fact]
         public async Task FunctionHandlerWillStartElasticTranscoderJob()
