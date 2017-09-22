@@ -12,41 +12,38 @@ using Amazon.Lambda.Serialization.Json;
 
 namespace TranscodeVideo
 {
-    public class Function
+    public class TranscodeVideoFunction
     {
         private readonly IAmazonElasticTranscoder _elasticTranscoder;
 
         /// <summary>
-        ///     Default constructor. This constructor is used by Lambda to construct the instance. When invoked in a Lambda
-        ///     environment
+        ///     Default constructor. This constructor is used by Lambda to construct the instance. When invoked in a Lambda environment
         ///     the AWS credentials will come from the IAM role associated with the function and the AWS region will be set to the
         ///     region the Lambda function is executed in.
         /// </summary>
-        public Function()
+        public TranscodeVideoFunction()
         {
             _elasticTranscoder = new AmazonElasticTranscoderClient();
         }
 
         /// <summary>
-        ///     Constructs an instance with a preconfigured S3 client. This can be used for testing the outside of the Lambda
-        ///     environment.
+        ///     Constructs an instance with a pre-configured Elastic Transcoder client. This can be used for testing the outside of the Lambda environment.
         /// </summary>
         /// <param name="elasticTranscoder"></param>
-        public Function(IAmazonElasticTranscoder elasticTranscoder)
+        public TranscodeVideoFunction(IAmazonElasticTranscoder elasticTranscoder)
         {
             _elasticTranscoder = elasticTranscoder;
         }
 
         /// <summary>
-        ///     This method is called for every Lambda invocation. This method takes in an S3 event object and can be used
-        ///     to respond to S3 notifications.
+        ///     This method is called for every Lambda invocation. This method takes in an S3 event object and can be used to respond to S3 notifications.
         /// </summary>
-        /// <param name="evnt"></param>
+        /// <param name="input"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public async Task FunctionHandler(S3Event evnt, ILambdaContext context)
+        public async Task Handler(S3Event input, ILambdaContext context)
         {
-            var key = evnt.Records?[0].S3.Object.Key;
+            var key = input.Records?[0].S3.Object.Key;
 
             var sourceKey = WebUtility.UrlDecode(key);
 

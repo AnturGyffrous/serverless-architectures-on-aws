@@ -15,7 +15,7 @@ namespace Tests
     public class TranscodeVideoTests
     {
         [Fact]
-        public async Task FunctionHandlerWillStartElasticTranscoderJob()
+        public async Task HandlerWillStartElasticTranscoderJob()
         {
             // Arrange
             var s3Event = new S3Event
@@ -47,10 +47,10 @@ namespace Tests
                 .Setup(x => x.Logger)
                 .Returns(logger);
 
-            var lambda = new Function(elasticTranscoder);
+            var lambda = new TranscodeVideoFunction(elasticTranscoder);
 
             // Act
-            await lambda.FunctionHandler(s3Event, context);
+            await lambda.Handler(s3Event, context);
 
             // Assert
             Mock.Get(logger).Verify(x => x.LogLine(It.Is<string>(m => m.Contains("My Holiday: Gröna Lund (Jan '15)"))));
